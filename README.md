@@ -28,7 +28,7 @@ SafeRoadsAI is a full-stack mobile application designed to improve road safety b
 ## 🚀 Features
 
 ### 👤 User Features
-- Upload pothole images  
+- Upload pothole images or Real-Time Pothole Detection
 - Automatic location tagging  
 - AI-based pothole detection  
 - View report history  
@@ -71,24 +71,6 @@ SafeRoadsAI is a full-stack mobile application designed to improve road safety b
 - Role-based access control (RBAC)  
 - Admin-protected APIs  
 - Secure token storage  
-
----
-
-## 📁 Project Structure
-
-```
-SafeRoadsAI/
-│
-├── client/                # React Native App
-├── server/                # Backend API
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   └── createAdmin.js
-│
-└── README.md
-```
 
 ---
 
