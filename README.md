@@ -1,6 +1,6 @@
-# 🚧 SafeRoadsAI – AI-Powered Pothole Detection & Management System
+# 🚧 SafePath – AI-Powered Pothole Detection & Reporting System
 
-SafeRoadsAI is a full-stack mobile application designed to improve road safety by enabling users to report potholes using images and location data. The system integrates AI-based detection (YOLO/OpenCV) with a role-based admin dashboard, allowing authorities to efficiently monitor, prioritize, and resolve road issues.
+SafePath is a full-stack mobile application designed to improve road safety by enabling users to report potholes using images and location data. The system integrates AI-based detection (YOLO/OpenCV) with a role-based admin dashboard, allowing authorities to efficiently monitor, prioritize, and resolve road issues.
 
 ---
 
