@@ -79,7 +79,7 @@ SafePath is a full-stack mobile application designed to improve road safety by e
 ### 1. Clone Repository
 
 ```
-git clone https://github.com/rishvant/Pothole-App
+git clone https://github.com/shreyaporwal2003/Safe_Path.git
 cd Pothole-App
 ```
 
