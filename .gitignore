@@ -1,0 +1,69 @@
+
+# ---- secrets / local config (never commit) ----
+.env
+.env.*
+!.env.example
+*.env
+!**/.env.example
+
+/backend/src/main/resources/application-local.properties
+
+# ---- Java / Maven / IDE ----
+**/target/
+.mvn/wrapper/maven-wrapper.jar
+HELP.md
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# ---- Node / Expo ----
+**/node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# ---- Python (yolo_service) ----
+**/__pycache__/
+*.pyc
+**/.venv/
+**/venv/
+
+# ---- runtime files ----
+uploads/
+*.log
+.DS_Store
+Thumbs.db
+
+# ---- temporary archives / backups ----
+*.zip
+*.bak
+*.tmp
+
+# ---- YOLO model outputs and generated media ----
+**/runs/
+**/output_detected.mp4
+**/pothole_output.mp4
+
+# ---- Python cache and local environments ----
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+**/venv/
+
+# ---- Local database files and dumps ----
+*.sqlite3
+*.db
+*.dump
+*.sql.gzM
+
+/ML_Model_Pothole detection/best.pt
+/ML_Model_Pothole detection/best.pt

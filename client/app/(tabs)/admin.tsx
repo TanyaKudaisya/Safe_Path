@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Button, StyleSheet } from "react-native";
 import { ReportService } from "@/services/ReportService";
+import DetectionSummary from "@/components/DetectionSummary";
 
 export default function AdminScreen() {
     const [reports, setReports] = useState<any[]>([]);
@@ -20,16 +21,17 @@ export default function AdminScreen() {
 
             <FlatList
                 data={reports}
-                keyExtractor={(item) => item._id}
+                keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
                         <Text>Name: {item.name}</Text>
                         <Text>Status: {item.status}</Text>
+                        <DetectionSummary report={item} />
 
                         <Button
                             title="Resolve"
                             onPress={async () => {
-                                await ReportService.resolveReport(item._id);
+                                await ReportService.resolveReport(item.id);
                                 fetchReports();
                             }}
                         />
@@ -37,7 +39,7 @@ export default function AdminScreen() {
                         <Button
                             title="Delete"
                             onPress={async () => {
-                                await ReportService.deleteReport(item._id);
+                                await ReportService.deleteReport(item.id);
                                 fetchReports();
                             }}
                         />

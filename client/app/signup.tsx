@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/services/Api";
 import React, { useState } from "react";
 import {
   View,
@@ -18,6 +19,7 @@ export default function SignUpScreen() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
   });
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -27,20 +29,27 @@ export default function SignUpScreen() {
   };
 
   const handleSignup = async () => {
-    const { name, email, password } = form;
-    if (!name || !email || !password) {
+    const { name, email, phone, password } = form;
+    if (!name || !email || !phone || !password) {
       showSnackbar("Please enter all fields.", "error");
+      return;
+    }
+    const phoneDigits = phone.replace(/[\s\-().]/g, "").replace(/^\+/, "");
+    if (!/^\d{10,15}$/.test(phoneDigits)) {
+      showSnackbar("Enter a valid phone number (10-15 digits).", "error");
       return;
     }
 
     try {
       await AuthService.signup(form);
       Alert.alert("Success", "Signed up successfully!");
-      setForm({ name: "", email: "", password: "" });
+      setForm({ name: "", email: "", phone: "", password: "" });
       router.push("/");
     } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error || error.message || "Signup failed";
+      const errorMessage = getErrorMessage(
+        error,
+        "Signup failed. This email may already be registered."
+      );
       Alert.alert("Signup Failed", errorMessage);
     }
   };
@@ -79,6 +88,23 @@ export default function SignUpScreen() {
           autoCapitalize="none"
           value={form.email}
           onChangeText={(value) => handleInputChange("email", value)}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <MaterialCommunityIcons
+          name="phone"
+          size={20}
+          color="#888"
+          style={styles.icon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone number"
+          keyboardType="phone-pad"
+          maxLength={16}
+          value={form.phone}
+          onChangeText={(value) => handleInputChange("phone", value)}
         />
       </View>
 

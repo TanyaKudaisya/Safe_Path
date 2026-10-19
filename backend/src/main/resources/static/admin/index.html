@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>SafePath Admin</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232D8CFF'/%3E%3Cpath d='M8 21c4-9 12-9 16 0' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="admin.css?v=4">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<main id="login-screen" class="login" hidden>
+  <form id="login-form" class="login-card" autocomplete="on">
+    <div class="brand brand-lg"><span class="logo"></span> SafePath <small>Admin</small></div>
+    <p class="muted">Staff sign-in. Access is limited to <b>@safepath.com</b> accounts with the admin role.</p>
+    <label>Email
+      <input id="login-email" type="email" required autocomplete="username" placeholder="you@safepath.com">
+    </label>
+    <label>Password
+      <input id="login-password" type="password" required autocomplete="current-password">
+    </label>
+    <div id="login-error" class="form-error" role="alert" hidden></div>
+    <button class="btn primary block" type="submit">Sign in</button>
+    <button class="linkish" type="button" id="to-reset">Forgot password?</button>
+  </form>
+
+  <form id="reset-form" class="login-card" autocomplete="off" hidden>
+    <div class="brand brand-lg"><span class="logo"></span> SafePath <small>Admin</small></div>
+    <p class="muted" id="reset-hint">Enter your staff email and we will send you a 6-digit code.</p>
+    <label>Email
+      <input id="reset-email" type="email" required placeholder="you@safepath.com">
+    </label>
+    <div id="reset-step2" hidden>
+      <label>6-digit code
+        <input id="reset-code" inputmode="numeric" maxlength="6" pattern="\d{6}" autocomplete="one-time-code">
+      </label>
+      <label style="margin-top:14px">New password (min 8 characters)
+        <input id="reset-password" type="password" minlength="8" autocomplete="new-password">
+      </label>
+    </div>
+    <div id="reset-msg" class="form-error" role="alert" hidden></div>
+    <button class="btn primary block" type="submit" id="reset-submit">Send code</button>
+    <button class="linkish" type="button" id="to-login">Back to sign in</button>
+  </form>
+</main>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app" class="shell" hidden>
+  <aside class="sidebar">
+    <div class="brand"><span class="logo"></span> SafePath <small>Admin</small></div>
+    <nav id="nav">
+      <a href="#/overview" data-view="overview"><i class="ic ic-overview"></i>Overview</a>
+      <a href="#/reports" data-view="reports"><i class="ic ic-reports"></i>Reports <span id="nav-active" class="count"></span></a>
+      <a href="#/map" data-view="map"><i class="ic ic-map"></i>Map</a>
+      <a href="#/areas" data-view="areas"><i class="ic ic-areas"></i>Areas</a>
+      <a href="#/team" data-view="team"><i class="ic ic-team"></i>Team</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div id="me-box" class="me-box"></div>
+      <button id="btn-logout" class="btn ghost block">Sign out</button>
+    </div>
+  </aside>
+
+  <section class="main">
+    <header class="topbar">
+      <h1 id="page-title">Overview</h1>
+      <div class="top-actions">
+        <span id="last-updated" class="muted small"></span>
+        <button id="btn-refresh" class="btn" title="Refresh data">Refresh</button>
+      </div>
+    </header>
+    <div id="view" class="view"></div>
+  </section>
+</div>
+
+<!-- ============ REPORT DRAWER ============ -->
+<div id="drawer-backdrop" class="backdrop" hidden></div>
+<aside id="drawer" class="drawer" hidden aria-label="Report details"></aside>
+
+<!-- ============ DIALOG (notes / confirmations) ============ -->
+<dialog id="dialog" class="dialog">
+  <form method="dialog" id="dialog-form">
+    <h3 id="dialog-title"></h3>
+    <p id="dialog-text" class="muted"></p>
+    <textarea id="dialog-input" rows="3" maxlength="1000"></textarea>
+    <div id="dialog-error" class="form-error" hidden></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" id="dialog-cancel">Cancel</button>
+      <button type="submit" class="btn primary" id="dialog-ok">OK</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="admin.js?v=4"></script>
+</body>
+</html>

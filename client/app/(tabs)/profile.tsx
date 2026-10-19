@@ -13,15 +13,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { AuthService } from "@/services/AuthService";
+import { unregisterPush } from "@/services/PushNotifications";
 
 export default function ProfileScreen() {
   const [userData, setUserData] = useState<{
     name: string;
     email: string;
+    phone?: string;
     avatar?: string;
   }>({
     name: "",
     email: "",
+    phone: "",
     avatar: "",
   });
   const [loading, setLoading] = useState(true);
@@ -59,17 +62,20 @@ export default function ProfileScreen() {
         {
           name: userData.name,
           avatar: userData.avatar || "",
+          phone: userData.phone || undefined,
         },
         token
       );
 
-      const updatedUser = response.data.user;
+      // Backend may return the user directly or wrapped as { user }
+      const updatedUser = response.data?.user ?? response.data;
       await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
       setUserData(updatedUser);
 
       setIsEditing(false);
     } catch (error) {
       console.log("Error saving profile:", error);
+      alert("Could not save profile. Check the phone number (10-15 digits) and try again.");
     }
   };
 
@@ -146,6 +152,23 @@ export default function ProfileScreen() {
           <Text style={styles.text}>{userData.email || "N/A"}</Text>
         </View>
 
+        {/* Phone */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Phone</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={userData.phone ?? ""}
+              keyboardType="phone-pad"
+              maxLength={16}
+              placeholder="e.g. 9876543210"
+              onChangeText={(text) => setUserData({ ...userData, phone: text })}
+            />
+          ) : (
+            <Text style={styles.text}>{userData.phone || "Not added"}</Text>
+          )}
+        </View>
+
         {/* Edit & Save Button */}
         <TouchableOpacity
           style={[
@@ -163,7 +186,9 @@ export default function ProfileScreen() {
         <TouchableOpacity
           style={[styles.button, styles.logoutButton]}
           onPress={async () => {
-            await AsyncStorage.removeItem("token");
+            await unregisterPush(); // while the token still exists
+            await AsyncStorage.multiRemove(["token", "user"]);
+            await AuthService.clearAll();
             router.push("/login");
           }}
         >
