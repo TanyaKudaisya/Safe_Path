@@ -5,12 +5,46 @@ AI-assisted pothole reporting. Citizens photograph or live-scan a road with thei
 ## Architecture
 
 ```
- Expo app (React Native)  ──HTTP/WebSocket──▶  Spring Boot backend  ──▶  MongoDB
-      client/                                    backend/  :8080    └──▶  Cloudinary (photos)
-                                                      │
-                                                      └──HTTP/WebSocket──▶  YOLO service (FastAPI)
-                                                                              yolo_service/  :9001
- Admin dashboard (static web page, served by the backend)  →  http://<host>:8080/admin/
+                    ┌──────────────────────────────┐
+                    │   Expo / React Native App    │
+                    │                              │
+                    │  Camera · GPS · Maps · JWT   │
+                    └──────────────┬───────────────┘
+                                   │
+                         HTTP / WebSocket
+                                   │
+                    ┌──────────────▼───────────────┐
+                    │      Spring Boot Backend     │
+                    │          Port 8080           │
+                    │                              │
+                    │  REST APIs · JWT Security    │
+                    │  WebSocket Bridge            │
+                    │  Report Management           │
+                    └───────┬────────────┬─────────┘
+                            │            │
+                            ▼            ▼
+                    ┌────────────┐  ┌────────────┐
+                    │  MongoDB   │  │ Cloudinary │
+                    │  Reports   │  │   Photos   │
+                    │   Users    │  └────────────┘
+                    └────────────┘
+                            │
+                            │ HTTP / WebSocket
+                            ▼
+                    ┌──────────────────────────────┐
+                    │       FastAPI + YOLO         │
+                    │          Port 9001           │
+                    │                              │
+                    │  Image Detection             │
+                    │  Real-Time Frame Processing  │
+                    └──────────────────────────────┘
+
+                    ┌──────────────────────────────┐
+                    │     Admin Web Dashboard      │
+                    │  backend static resources    │
+                    │          /admin/             │
+                    └──────────────────────────────┘
+
 ```
 
 | Folder | What it is |
@@ -39,15 +73,6 @@ AI-assisted pothole reporting. Citizens photograph or live-scan a road with thei
 - Workflow: pending → in progress → resolved / rejected (a reason is required to reject); priority and assignment
 - Map and Areas: reports coloured by status, tracked zones with per-zone stats, auto-detected hotspots
 - Team: invite staff, change your password; forgot-password on the sign-in page
-
-## Prerequisites
-
-- Java 21 and Maven (the wrapper `./mvnw` is included)
-- Node.js 18+ and npm
-- Python 3.10+
-- MongoDB (local, or a free Atlas cluster)
-- A [Cloudinary](https://cloudinary.com) account (free tier is fine)
-- Expo Go on your phone (same Wi-Fi as your computer) or an Android/iOS emulator
 
 ## Setup
 
@@ -216,6 +241,6 @@ Keep each service running in its own terminal while testing SafePath.
 
 ## Authors
 
-Tanya Kudaisya
-Shreya Porwal
-Shreya Singh
+- Tanya Kudaisya
+- Shreya Porwal
+- Shreya Singh
