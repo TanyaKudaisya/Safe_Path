@@ -6,12 +6,15 @@ import cv2
 import numpy as np
 import json
 
+
+
 app = FastAPI()
 
 # --------------------------------------------------
 # LOAD YOLO MODEL ONCE
 # --------------------------------------------------
 model = YOLO("best.pt")
+
 
 
 # ==================================================
@@ -51,7 +54,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 conf = float(box.conf[0])
 
                 detections.append({
-                    "label": model.names[int(box.cls[0])],
+                    "label": "pothole",
                     "score": conf,
                     "box": {
                         "x1": x1 / w,
@@ -94,7 +97,7 @@ async def detect_image(
     detections = []
     for box in results.boxes:
         detections.append({
-            "label": model.names[int(box.cls[0])],
+            "label": "pothole",
             "score": float(box.conf[0])
         })
 

@@ -1,5 +1,7 @@
-import { Tabs } from "expo-router";
-import React from "react";
+import { Tabs, useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import * as Notifications from "expo-notifications";
+import { registerForPush } from "@/services/PushNotifications";
 import { Platform } from "react-native";
 import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -10,6 +12,23 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+
+  useEffect(() => {
+    // register this phone for push (no-op when logged out / on an emulator)
+    registerForPush();
+
+    // tapping a notification opens the user's report list
+    const open = () => router.push("/reportHistory" as any);
+    const sub = Notifications.addNotificationResponseReceivedListener(open);
+    Notifications.getLastNotificationResponseAsync()
+      .then((last) => {
+        if (last) open();
+      })
+      .catch(() => {});
+    return () => sub.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Tabs
@@ -35,6 +54,7 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="admin" options={{ href: null }} />
       <Tabs.Screen
         name="profile"
         options={{

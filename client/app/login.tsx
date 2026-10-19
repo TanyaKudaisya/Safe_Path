@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { AuthService } from "@/services/AuthService";
 import { useSnackbar } from "@/context/SnackbarContext";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { getErrorMessage } from "@/services/Api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
@@ -45,8 +46,7 @@ export default function LoginScreen() {
       router.push("/");
     } catch (error: any) {
       console.log(error);
-      const errorMessage =
-        error.response?.data?.error || error.message || "Login failed";
+      const errorMessage = getErrorMessage(error, "Invalid email or password");
       showSnackbar(errorMessage, "error");
     }
   };
@@ -99,6 +99,10 @@ export default function LoginScreen() {
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => router.push("/forgotPassword")}>
+        <Text style={styles.signupText}>Forgot password?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/signup")}>

@@ -1,34 +1,43 @@
-import axios from "axios";
-import { API_BASE_URL } from "./Api";
+import { api } from "./Api";
 import * as SecureStore from "expo-secure-store";
+import { registerForPush } from "./PushNotifications";
 
 export const AuthService = {
   // ✅ SIGNUP
-  signup: async (data: { name: string; email: string; password: string }) => {
-    const response = await axios.post(`${API_BASE_URL}/auth/signup`, data);
+  signup: async (data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+  }) => {
+    const response = await api.post("/auth/signup", data);
     return response;
   },
 
   // ✅ LOGIN (FIXED)
   login: async (data: { email: string; password: string }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, data);
+      const response = await api.post("/auth/login", data);
 
       if (response.status === 200) {
-        const token = response.data?.token;
-        const user = response.data?.user;
+        // Spring backend returns a flat body: { id, name, email, avatar, role, token }
+        const { token, ...user } = response.data ?? {};
 
-        // 🔥 SAFETY CHECKS (VERY IMPORTANT)
-        if (!token || !user) {
+        if (!token || !user.id) {
           throw new Error("Invalid login response");
         }
 
-        // ✅ ALWAYS STORE AS STRING
         await SecureStore.setItemAsync("token", String(token));
-        await SecureStore.setItemAsync("user_id", String(user._id));
+        await SecureStore.setItemAsync("user_id", String(user.id));
         await SecureStore.setItemAsync("role", String(user.role));
 
+        // Re-shape so callers keep using response.data.token / response.data.user
+        response.data = { token, user };
+
         console.log("✅ Login successful, data stored");
+
+        // fire-and-forget: ask for notification permission + register this phone
+        registerForPush();
       }
 
       return response;
@@ -38,13 +47,27 @@ export const AuthService = {
     }
   },
 
+  // ✅ FORGOT PASSWORD: emails a 6-digit code (same answer whether or not the email exists)
+  forgotPassword: async (email: string) => {
+    return api.post("/auth/forgot-password", { email });
+  },
+
+  // ✅ RESET PASSWORD with the emailed code
+  resetPassword: async (data: {
+    email: string;
+    code: string;
+    newPassword: string;
+  }) => {
+    return api.post("/auth/reset-password", data);
+  },
+
   // ✅ UPDATE PROFILE
   updateProfile: async (
-    data: { name: string; avatar: string },
+    data: { name: string; avatar: string; phone?: string },
     token: string
   ) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/auth/update`, data, {
+      const response = await api.put("/auth/update", data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response;

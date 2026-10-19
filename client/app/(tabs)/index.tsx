@@ -9,8 +9,7 @@ import * as Location from "expo-location";
 import haversine from "haversine-distance"; // For calculating distance
 import { IconName, RootStackParamList } from "@/types";
 import { ActivityIndicator } from "@react-native-material/core";
-import axios from "axios";
-import { API_BASE_URL } from "@/services/Api";
+import { ReportService } from "@/services/ReportService";
 import "react-native-get-random-values";
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "home">;
@@ -69,9 +68,9 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchPotholes = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/report`);
-        const potholes = response.data
-          .filter((pothole: any) => pothole.detections.length > 0)
+        const data = await ReportService.getAllReports();
+        const potholes = data
+          .filter((pothole: any) => (pothole.detections?.length ?? 0) > 0)
           .map((pothole: any) => ({
             lat: pothole.location.latitude,
             lon: pothole.location.longitude,

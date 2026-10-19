@@ -1,52 +1,31 @@
-import axios from "axios";
-import { API_BASE_URL } from "./Api";
-import { AuthService } from "./AuthService";
+import { api } from "./Api";
 
 export const ReportService = {
+  // Requires login: the backend reads the user from the JWT (no user_id field any more).
   registerReport: async (data: FormData) => {
-    const response = await axios.post(`${API_BASE_URL}/report/register`, data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await api.post("/report/register", data, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return response;
   },
 
   getReportsByUserId: async (user_id: string | null) => {
-    const response = await axios.get(`${API_BASE_URL}/report/user/${user_id}`);
+    const response = await api.get(`/report/user/${user_id}`);
     return response;
   },
 
-  // ✅ ADMIN FUNCTIONS
+  // Any logged-in user can list reports (home map + nearby potholes use this).
   getAllReports: async () => {
-    const token = await AuthService.getToken();
-    const response = await axios.get(`${API_BASE_URL}/report`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get("/report");
     return response.data;
   },
 
+  // ADMIN functions (ROLE_ADMIN)
   deleteReport: async (id: string) => {
-    const token = await AuthService.getToken();
-    await axios.delete(`${API_BASE_URL}/report/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await api.delete(`/report/${id}`);
   },
 
   resolveReport: async (id: string) => {
-    const token = await AuthService.getToken();
-    await axios.put(
-      `${API_BASE_URL}/report/${id}/resolve`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    await api.put(`/report/${id}/resolve`, {});
   },
 };

@@ -26,6 +26,7 @@ export default {
     },
     plugins: [
       "expo-router",
+      "expo-secure-store",
       [
         "expo-splash-screen",
         {
@@ -40,9 +41,10 @@ export default {
       typedRoutes: true
     },
     extra: {
-      apiUrl: process.env.API_BASE_URL,
-      staticFilesUrl: process.env.STATIC_FILES_URL,
-      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
-    }
+  apiUrl: process.env.EXPO_PUBLIC_BACKEND_URL,
+  "eas": {
+        "projectId": "f8e2fffe-ad95-4d2d-ad3f-c0f5420c0b0c"
+      }
+}
   }
 }

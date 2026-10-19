@@ -29,8 +29,13 @@ export default function RootLayout() {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("token");
 
-      // allow login & signup without token
-      if (!token && pathname !== "/login" && pathname !== "/signup") {
+      // allow login, signup & password reset without token
+      if (
+        !token &&
+        pathname !== "/login" &&
+        pathname !== "/signup" &&
+        pathname !== "/forgotPassword"
+      ) {
         router.replace("/login");
       }
 
@@ -57,6 +62,7 @@ export default function RootLayout() {
           )}
           <Stack.Screen name="login" />
           <Stack.Screen name="signup" />
+          <Stack.Screen name="forgotPassword" />
           <Stack.Screen name="report" />
           <Stack.Screen name="registerReport" />
           <Stack.Screen name="reportHistory" />
