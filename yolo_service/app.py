@@ -5,8 +5,7 @@ import base64
 import cv2
 import numpy as np
 import json
-
-
+import time
 
 app = FastAPI()
 
@@ -14,7 +13,6 @@ app = FastAPI()
 # LOAD YOLO MODEL ONCE
 # --------------------------------------------------
 model = YOLO("best.pt")
-
 
 
 # ==================================================
@@ -54,7 +52,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 conf = float(box.conf[0])
 
                 detections.append({
-                    "label": "pothole",
+                    "label": model.names[int(box.cls[0])],
                     "score": conf,
                     "box": {
                         "x1": x1 / w,
@@ -81,7 +79,9 @@ async def detect_image(
     file: UploadFile = File(...),
     threshold: float = 0.25
 ):
+    t0 = time.time()
     image_bytes = await file.read()
+    print(f"detect-image: received {len(image_bytes) // 1024} KB", flush=True)
 
     np_arr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
@@ -92,15 +92,22 @@ async def detect_image(
             content={"detected": False, "count": 0}
         )
 
-    results = model(img, conf=threshold)[0]
+    # Cap the longest side so huge phone photos don't exhaust memory on small hosts
+    h, w = img.shape[:2]
+    if max(h, w) > 1280:
+        scale = 1280 / max(h, w)
+        img = cv2.resize(img, (int(w * scale), int(h * scale)))
+
+    results = model(img, conf=threshold, imgsz=640)[0]
 
     detections = []
     for box in results.boxes:
         detections.append({
-            "label": "pothole",
+            "label": model.names[int(box.cls[0])],
             "score": float(box.conf[0])
         })
 
+    print(f"detect-image: {len(detections)} detection(s) in {time.time() - t0:.1f}s", flush=True)
     return {
         "detected": len(detections) > 0,
         "count": len(detections),
