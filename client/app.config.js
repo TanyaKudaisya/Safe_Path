@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    name: "PotholeApp",
+    name: "SafePath",
     slug: "PotholeApp",
     version: "1.0.0",
     orientation: "portrait",
@@ -14,6 +14,7 @@ export default {
       supportsTablet: true
     },
     android: {
+      package: "com.tanya.safepath",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"

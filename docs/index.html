@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SafePath - report potholes, track repairs</title>
+<meta name="description" content="SafePath detects potholes from phone photos, locates and scores each report, and gives road staff a dashboard to review and close them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --concrete: #E3E6E8;
+    --panel: #F2F4F5;
+    --asphalt: #262A2E;
+    --ink: #14181B;
+    --muted: #4A5259;
+    --paint: #F4C20D;
+    --box: #FF4B3E;
+    --ok: #1E7B45;
+    --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+    --text: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--concrete);
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--asphalt); outline-offset: 3px; border-radius: 2px; }
+  .wrap { width: min(1120px, 100% - 2rem); margin-inline: auto; }
+
+  /* ---------- top bar ---------- */
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 0; }
+  .wordmark { font-family: var(--display); font-weight: 700; font-size: 1.75rem; letter-spacing: .01em; text-decoration: none; line-height: 1; }
+  .wordmark span { background: var(--paint); padding: 0 .3em; margin-left: .15em; }
+  .status { display: inline-flex; align-items: center; gap: .55rem; font-size: .9rem; color: var(--muted); }
+  .status i { width: .7rem; height: .7rem; border-radius: 50%; background: var(--paint); box-shadow: 0 0 0 3px rgba(244,194,13,.35); }
+  .status[data-state="up"] i { background: var(--ok); box-shadow: 0 0 0 3px rgba(30,123,69,.25); }
+  .status[data-state="slow"] i { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+
+  /* ---------- hero ---------- */
+  .hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(1.5rem, 4vw, 4rem); align-items: center; padding: clamp(1.5rem, 5vw, 4rem) 0 clamp(2.5rem, 6vw, 5rem); }
+  .hero h1 { font-family: var(--display); font-weight: 700; font-size: clamp(3.4rem, 9vw, 6.6rem); line-height: .92; letter-spacing: -.01em; margin: 0 0 1.25rem; }
+  .hero p.lede { font-size: 1.2rem; max-width: 34em; margin: 0 0 2rem; color: var(--ink); }
+  .actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .btn { display: inline-block; padding: .85rem 1.4rem; font-weight: 600; text-decoration: none; border: 2px solid var(--asphalt); border-radius: 3px; transition: transform .12s ease, background-color .12s ease; }
+  .btn.primary { background: var(--asphalt); color: #fff; box-shadow: 0 4px 0 var(--paint); }
+  .btn.primary:hover { transform: translateY(2px); box-shadow: 0 2px 0 var(--paint); }
+  .btn.plain { background: transparent; }
+  .btn.plain:hover { background: rgba(38,42,46,.08); }
+  .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+  .hint { margin: 1rem 0 0; font-size: .92rem; color: var(--muted); max-width: 36em; }
+
+  .frame { margin: 0; }
+  .frame svg { display: block; width: 100%; height: auto; border-radius: 4px; box-shadow: 0 18px 40px -18px rgba(20,24,27,.6); }
+  .frame figcaption { margin-top: .75rem; font-size: .9rem; color: var(--muted); }
+  .detect rect.line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw 1s .5s ease-out forwards; }
+  .detect .tag { opacity: 0; animation: show .3s 1.35s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes show { to { opacity: 1; } }
+
+  /* ---------- sections ---------- */
+  section { padding: clamp(2.5rem, 6vw, 4.5rem) 0; }
+  h2 { font-family: var(--display); font-weight: 700; font-size: clamp(2.1rem, 5vw, 3.2rem); line-height: 1; margin: 0 0 .5rem; }
+  .intro { max-width: 38em; color: var(--muted); margin: 0 0 2.25rem; }
+
+  /* try it: rows separated by a painted dashed line */
+  .rows { margin: 0; padding: 0; list-style: none; }
+  .rows li { display: grid; grid-template-columns: 11rem 1fr auto; gap: 1rem 2rem; align-items: baseline; padding: 1.4rem 0; border-top: 4px dashed var(--paint); }
+  .rows li:last-child { border-bottom: 4px dashed var(--paint); }
+  .rows h3 { font-family: var(--display); font-size: 1.7rem; margin: 0; line-height: 1.1; }
+  .rows p { margin: 0; }
+  .rows small { display: block; color: var(--muted); margin-top: .35rem; font-size: .92rem; }
+  .rows a.go { font-weight: 600; text-decoration-thickness: 3px; text-decoration-color: var(--paint); text-underline-offset: 4px; white-space: nowrap; }
+  .rows a.go:hover { text-decoration-color: var(--asphalt); }
+
+  /* route: a real sequence */
+  .route { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin: 2.5rem 0 0; padding: 0; list-style: none; counter-reset: stop; }
+  .route::before { content: ""; position: absolute; left: 0; right: 0; top: 1.05rem; border-top: 4px dashed var(--paint); }
+  .route li { position: relative; padding-top: 3rem; counter-increment: stop; }
+  .route li::before { content: counter(stop); position: absolute; top: 0; left: 0; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--asphalt); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: .95rem; }
+  .route h3 { font-family: var(--display); font-size: 1.45rem; margin: 0 0 .25rem; line-height: 1.1; }
+  .route p { margin: 0; font-size: .96rem; color: var(--muted); }
+
+  .split { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(1.5rem, 4vw, 4rem); }
+  .split h3 { font-family: var(--display); font-size: 1.9rem; margin: 0 0 .75rem; }
+  .split ul { margin: 0; padding-left: 1.1rem; }
+  .split li { margin-bottom: .55rem; padding-left: .2rem; }
+  .split li::marker { color: var(--asphalt); }
+
+  .stack { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.25rem 0 0; padding: 0; list-style: none; }
+  .stack li { background: var(--panel); border: 1px solid #c3c9ce; padding: .3rem .7rem; border-radius: 3px; font-size: .95rem; }
+
+  .limits { background: var(--panel); border-left: 6px solid var(--paint); padding: 1.25rem 1.5rem; max-width: 46rem; }
+  .limits h2 { font-size: 2rem; }
+  .limits ul { margin: .5rem 0 0; padding-left: 1.1rem; }
+  .limits li { margin-bottom: .4rem; }
+
+  footer { padding: 2rem 0 3rem; color: var(--muted); font-size: .95rem; border-top: 1px solid #c3c9ce; margin-top: 2rem; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; }
+    .rows li { grid-template-columns: 1fr; gap: .4rem; }
+    .route { grid-template-columns: 1fr; gap: 1.5rem; }
+    .route::before { top: 0; bottom: 0; left: 1.05rem; right: auto; border-top: 0; border-left: 4px dashed var(--paint); }
+    .route li { padding: 0 0 0 3.2rem; }
+    .split { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .detect rect.line { animation: none; stroke-dashoffset: 0; }
+    .detect .tag { animation: none; opacity: 1; }
+    .status[data-state="slow"] i { animation: none; }
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="bar">
+    <a class="wordmark" href="#top">Safe<span>Path</span></a>
+    <p class="status" id="status" data-state="slow" role="status" aria-live="polite" style="margin:0"><i></i><span id="status-text">Checking the server</span></p>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div>
+        <h1>Spot a pothole. Report it. See it fixed.</h1>
+        <p class="lede">SafePath turns a phone photo into a located, scored report that road staff can review and close, and shows you its status until it is done.</p>
+        <div class="actions">
+          <a class="btn primary" data-link="apk" href="#">Install the Android app</a>
+          <a class="btn plain" data-link="admin" href="#">Open the admin dashboard</a>
+        </div>
+        <p class="hint">The server runs on a free plan and sleeps when idle. If the light above is still pulsing, give it a minute.</p>
+      </div>
+
+      <figure class="frame">
+        <svg viewBox="0 0 520 420" role="img" aria-label="A road surface with a pothole outlined by a red detection box labelled pothole 91 percent">
+          <defs>
+            <filter id="grain" x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>
+              <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0"/>
+            </filter>
+          </defs>
+          <rect width="520" height="420" fill="#3b4045"/>
+          <rect width="520" height="420" filter="url(#grain)" opacity=".5"/>
+          <g stroke="#F4C20D" stroke-width="7" stroke-dasharray="46 34" fill="none">
+            <line x1="44" y1="-10" x2="44" y2="430"/>
+          </g>
+          <g stroke="#1b1e21" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="182,236 140,250 112,246 78,268"/>
+            <polyline points="360,222 410,208 440,214 486,190"/>
+            <polyline points="272,296 280,336 262,372 270,410"/>
+            <polyline points="300,176 322,138 316,104"/>
+          </g>
+          <path d="M180 232 C184 188 236 168 286 174 C340 180 372 206 362 246 C352 284 300 298 248 292 C205 286 176 268 180 232Z" fill="#15181b"/>
+          <path d="M214 246 C226 226 262 218 300 226 C326 232 330 250 306 260 C276 270 232 268 214 246Z" fill="#2a323a"/>
+          <path d="M232 240 C246 232 270 230 292 236" stroke="#6c7a86" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>
+          <g class="detect">
+            <rect class="line" x="160" y="150" width="224" height="168" fill="none" stroke="#FF4B3E" stroke-width="4"/>
+            <g class="tag">
+              <rect x="160" y="118" width="148" height="32" fill="#FF4B3E"/>
+              <text x="172" y="140" font-family="Public Sans, system-ui, sans-serif" font-weight="600" font-size="17" fill="#fff">pothole 91%</text>
+            </g>
+          </g>
+        </svg>
+        <figcaption>What the detector returns for a photo: where the pothole is and how sure it is. Illustration, not a real photo.</figcaption>
+      </figure>
+    </div>
+  </main>
+
+  <section aria-labelledby="try">
+    <h2 id="try">Try it</h2>
+    <p class="intro">Anyone can sign up as a citizen in the app. The dashboard is for road staff.</p>
+    <ul class="rows">
+      <li>
+        <h3>Android app</h3>
+        <p>Report a pothole with a photo or the live camera, then follow it under Active, Resolved and Rejected.
+          <small>Download the file, then allow installs from your browser when Android asks. If Play Protect warns you, choose More details, then Install anyway. iPhone is not supported.</small></p>
+        <a class="go" data-link="apk" href="#">Download the app</a>
+      </li>
+      <li>
+        <h3>Admin dashboard</h3>
+        <p>Review incoming reports on a map, move them through the workflow, and export them.
+          <small>Sign-in is limited to staff accounts. Get in touch for a walkthrough or a demo login.</small></p>
+        <a class="go" data-link="admin" href="#">Open the dashboard</a>
+      </li>
+      <li>
+        <h3>Source code</h3>
+        <p>Mobile app, Java backend, dashboard and detection service in one repository.
+          <small>The README covers setup and the settings you need.</small></p>
+        <a class="go" data-link="code" href="#">View on GitHub</a>
+      </li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="flow">
+    <h2 id="flow">How a report travels</h2>
+    <p class="intro">From the road to a closed ticket, with a record at every step.</p>
+    <ol class="route">
+      <li><h3>Photograph</h3><p>Take a photo, or scan with the live camera. The location comes from your phone.</p></li>
+      <li><h3>Detect</h3><p>A YOLO model finds the potholes and gives each one a confidence score.</p></li>
+      <li><h3>Report</h3><p>The photo, position and scores are saved as a report in the database.</p></li>
+      <li><h3>Review</h3><p>Staff mark it in progress, resolved, or rejected with a reason.</p></li>
+      <li><h3>Follow up</h3><p>The citizen sees the new status in the app.</p></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="inside">
+    <h2 id="inside">What is inside</h2>
+    <p class="intro">Two audiences, one backend.</p>
+    <div class="split">
+      <div>
+        <h3>For citizens</h3>
+        <ul>
+          <li>Photo detection with a score for every pothole found</li>
+          <li>Live camera scan that draws boxes and can file reports on its own</li>
+          <li>Map of open reports nearby and your own report history</li>
+          <li>Sign-up with phone number, profile editing, password reset by emailed code</li>
+        </ul>
+      </div>
+      <div>
+        <h3>For road staff</h3>
+        <ul>
+          <li>Reports on a map and in a list, filtered by status</li>
+          <li>Workflow from pending to in progress to resolved or rejected</li>
+          <li>Zone statistics and hotspots, with CSV export</li>
+          <li>Admin role plus a company email domain required, checked on every request</li>
+        </ul>
+      </div>
+    </div>
+    <ul class="stack" aria-label="Technology">
+      <li>React Native (Expo)</li>
+      <li>Spring Boot, Java 21</li>
+      <li>MongoDB Atlas</li>
+      <li>FastAPI and YOLO</li>
+      <li>JWT and rate limiting</li>
+      <li>Cloudinary</li>
+      <li>Render</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="limits">
+    <div class="limits">
+      <h2 id="limits">Good to know</h2>
+      <ul>
+        <li>Everything runs on free hosting, so the first request after a quiet period can take about a minute.</li>
+        <li>Live camera scanning is slow on this hosting. It runs much faster when the detection service runs on a laptop.</li>
+        <li>This app build does not receive push notifications yet. Status changes show up when you open the app.</li>
+        <li>Android only.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    SafePath is a student project. <a data-link="code" href="#">Source on GitHub</a>.
+  </footer>
+</div>
+
+<script>
+  /* Edit these three links, then publish. */
+  const LINKS = {
+    // Replace with the GitHub Release download link once you upload the APK there.
+    apk:   "https://expo.dev/accounts/ktanya/projects/PotholeApp/builds/51d15e13-5ac9-42c0-9e6d-6051407fec81",
+    admin: "https://safe-path-uwa9.onrender.com/admin/",
+    code:  "https://github.com/shreyaporwal2003/Safe_Path"
+  };
+  const BACKEND = "https://safe-path-uwa9.onrender.com";
+
+  document.querySelectorAll("[data-link]").forEach(function (a) {
+    var url = LINKS[a.dataset.link];
+    if (url) { a.href = url; } else { a.setAttribute("aria-disabled", "true"); }
+    if (a.dataset.link !== "apk") { a.target = "_blank"; a.rel = "noopener"; }
+  });
+
+  /* Pings the free server so it wakes up, and shows when it answers.
+     no-cors: we only need to know whether the server responded. */
+  (function () {
+    var box = document.getElementById("status");
+    var text = document.getElementById("status-text");
+    var started = Date.now();
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 90000);
+    var hint = setTimeout(function () {
+      text.textContent = "Waking the server, this can take about a minute";
+    }, 3500);
+    text.textContent = "Checking the server";
+    fetch(BACKEND + "/api/report", { mode: "no-cors", cache: "no-store", signal: ctrl.signal })
+      .then(function () {
+        box.dataset.state = "up";
+        text.textContent = "Server is awake";
+      })
+      .catch(function () {
+        box.dataset.state = "slow";
+        text.textContent = "Server did not answer, try again shortly";
+      })
+      .finally(function () { clearTimeout(timer); clearTimeout(hint); });
+  })();
+</script>
+</body>
+</html>
